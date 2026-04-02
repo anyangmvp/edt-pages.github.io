@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -6456,7 +6456,7 @@
                                 <span class="status-indicator" id="status-ipip"></span>
                                 <div class="title-text">
                                     <div class="title-main">国内测试</div>
-                                    <div class="title-subtitle">speedtest.cn</div>
+                                    <div class="title-subtitle">CN-Test</div>
                                 </div>
                             </div>
                             <div class="network-info-content">
@@ -15225,100 +15225,95 @@ vless://7b102311-43fd-4e8f-977e-8090623c101d@edt-pages.github.io:443?security=tl
             }
         }
 
-        // 获取国内测试数据 (遍历多个 API: speedtest.cn > ipipv.com > ipip.net)
+        // 获取国内测试数据 (并发 HEAD byte-test，读取 X-Request-Ip 后查询 ipinfo)
         async function fetchIpipData() {
             setStatus('status-ipip', 'loading');
 
-            // 获取标题元素,用于动态更新 API 来源
-            const titleElement = document.querySelector('#status-ipip').parentElement;
-
-            // 定义 API 配置列表,按优先级排序
-            const apiConfigs = [
+            const statusElement = document.querySelector('#status-ipip');
+            const titleElement = statusElement ? statusElement.parentElement : null;
+            const testSources = [
                 {
-                    name: 'speedtest.cn',
-                    url: 'https://api-v3.speedtest.cn/ip',
-                    parser: (data) => {
-                        if (data.code === 0 && data.data) {
-                            return {
-                                ip: data.data.ip || '未知',
-                                country: data.data.country || '未知',
-                                city: data.data.city || '未知'
-                            };
-                        }
-                        throw new Error('数据格式错误');
-                    }
+                    name: '字节跳动',
+                    url: 'https://perfops2.byte-test.com/',
+                    ipHeader: 'X-Request-Ip'
                 },
                 {
-                    name: 'ipipv.com',
-                    url: 'https://myip.ipipv.com/',
-                    parser: (data) => {
-                        return {
-                            ip: data.Ip || '未知',
-                            country: data.Country || '未知',
-                            city: data.City || '未知'
-                        };
-                    }
+                    name: '字节跳动',
+                    url: 'https://perfops.byte-test.com/',
+                    ipHeader: 'X-Request-Ip'
                 },
                 {
-                    name: 'ipip.net',
-                    url: 'https://myip.ipip.net/json',
-                    parser: (data) => {
-                        if (data.ret === 'ok' && data.data) {
-                            return {
-                                ip: data.data.ip || '未知',
-                                country: data.data.location[0] || '未知',
-                                city: data.data.location[2] || '未知'
-                            };
-                        }
-                        throw new Error('数据格式错误');
-                    }
+                    name: '网易',
+                    url: 'https://static.ws.126.net/favicon.ico',
+                    ipHeader: 'cdn-user-ip'
                 }
             ];
+            const controllers = testSources.map(() => new AbortController());
 
-            // 遍历 API 配置列表
-            for (const config of apiConfigs) {
-                try {
-                    // 添加时间戳参数避免缓存
-                    const timestamp = Date.now();
-                    const url = config.url + (config.url.includes('?') ? '&' : '?') + `_t=${timestamp}`;
-                    const response = await fetch(url);
-                    const data = await response.json();
+            try {
+                const fastestSuccess = await Promise.any(
+                    testSources.map((sourceConfig, index) => (async () => {
+                        const url = `${sourceConfig.url}${sourceConfig.url.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+                        const response = await fetch(url, {
+                            method: 'HEAD',
+                            cache: 'no-store',
+                            signal: controllers[index].signal
+                        });
 
-                    // 使用对应的解析器解析数据
-                    const result = config.parser(data);
+                        if (!response.ok) {
+                            throw new Error(`${sourceConfig.url} HTTP ${response.status}`);
+                        }
 
-                    // 更新页面显示
-                    document.getElementById('ipip-ip').textContent = result.ip;
-                    document.getElementById('ipip-country').textContent = result.country + ' ' + result.city;
-                    setStatus('status-ipip', 'success');
+                        const requestIp = (response.headers.get(sourceConfig.ipHeader) || '').trim();
+                        if (!requestIp) {
+                            throw new Error(`${sourceConfig.url} missing ${sourceConfig.ipHeader}`);
+                        }
 
-                    // 更新标题显示当前使用的 API
-                    if (titleElement) {
-                        titleElement.innerHTML = `<span class="status-indicator" id="status-ipip"></span><div class="title-text"><div class="title-main">国内测试</div><div class="title-subtitle">${config.name}</div></div>`;
-                        setStatus('status-ipip', 'success'); // 重新设置状态,因为 innerHTML 会清除
-                    }
+                        return {
+                            source: sourceConfig.url,
+                            requestIp,
+                            providerName: sourceConfig.name
+                        };
+                    })())
+                );
 
-                    console.log(`[国内API:${config.name}] 成功: IP=${result.ip}, 位置=${result.country} ${result.city}`);
-                    return; // 成功则返回,不再尝试其他 API
+                controllers.forEach(controller => controller.abort());
 
-                } catch (error) {
-                    console.warn(`${config.name} 接口失败:`, error);
-                    // 继续尝试下一个 API
+                const infoResponse = await fetch(
+                    `https://api.cmliussss.net/api/ipinfo?ip=${encodeURIComponent(fastestSuccess.requestIp)}&_t=${Date.now()}`
+                );
+                if (!infoResponse.ok) {
+                    throw new Error(`ipinfo HTTP ${infoResponse.status}`);
                 }
-            }
 
-            // 所有 API 都失败
-            document.getElementById('ipip-ip').innerHTML = '<span class="error">加载失败</span>';
-            document.getElementById('ipip-country').textContent = '';
-            document.getElementById('ipip-city').textContent = '';
-            setStatus('status-ipip', 'error');
-            console.error('所有国内测试 API 都失败');
+                const info = await infoResponse.json();
+                const ip = (info.ip || fastestSuccess.requestIp || '未知').trim();
+                const location = `${info.country_code || '未知'} ${info.asn || ''} ${info.as_name || ''}`.trim();
+
+                document.getElementById('ipip-ip').textContent = ip;
+                document.getElementById('ipip-country').textContent = location || '未知';
+                setStatus('status-ipip', 'success');
+
+                if (titleElement) {
+                    titleElement.innerHTML = `<span class="status-indicator" id="status-ipip"></span><div class="title-text"><div class="title-main">国内测试</div><div class="title-subtitle">${fastestSuccess.providerName}</div></div>`;
+                    setStatus('status-ipip', 'success');
+                }
+
+                console.log(`[国内测试] 成功: IP=${ip}, 位置=${location}, 来源=${fastestSuccess.source}`);
+            } catch (error) {
+                controllers.forEach(controller => controller.abort());
+
+                document.getElementById('ipip-ip').innerHTML = '<span class="error">加载失败</span>';
+                document.getElementById('ipip-country').textContent = '';
+                document.getElementById('ipip-city').textContent = '';
+                setStatus('status-ipip', 'error');
+                console.error('国内测试 所有测试源都失败:', error);
+            }
         }
 
         // 获取国外测试数据
         async function fetchOverseasTestData() {
             setStatus('status-overseas', 'loading');
-
             // API 配置：URL + 字段映射
             const apis = [
                 {
