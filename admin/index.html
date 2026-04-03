@@ -618,12 +618,8 @@
             100% {
                 opacity: 0;
                 transform:
-                    translate(
-                        calc(-50% + var(--gift-x-drift, 0px)),
-                        calc(-50% - var(--gift-y-lift, 150px))
-                    )
-                    scale(1.02)
-                    rotate(var(--gift-rotate, 0deg));
+                    translate(calc(-50% + var(--gift-x-drift, 0px)),
+                        calc(-50% - var(--gift-y-lift, 150px))) scale(1.02) rotate(var(--gift-rotate, 0deg));
             }
         }
 
@@ -666,12 +662,8 @@
             100% {
                 opacity: 1;
                 transform:
-                    translate(
-                        calc(-50% + var(--rocket-x-drift, 0px)),
-                        calc(-50% - 220px)
-                    )
-                    scale(1.06)
-                    rotate(9deg);
+                    translate(calc(-50% + var(--rocket-x-drift, 0px)),
+                        calc(-50% - 220px)) scale(1.06) rotate(9deg);
             }
         }
 
@@ -1734,6 +1726,29 @@
             opacity: 1
         }
 
+        .social-link.social-version {
+            width: auto;
+            min-width: 124px;
+            padding: 0 14px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            color: #4b5563;
+            cursor: default;
+        }
+
+        .social-link.social-version:hover,
+        .social-link.social-version:active {
+            transform: none;
+            color: #4b5563;
+            border-color: rgba(229, 231, 235, 0.8);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .social-link.social-version:hover::before {
+            opacity: 0;
+        }
+
         /* 复选框样式 */
         .checkbox-group {
             display: flex;
@@ -1818,6 +1833,16 @@
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 12px;
+            }
+
+            .social-links {
+                gap: 12px;
+            }
+
+            .social-link.social-version {
+                min-width: 112px;
+                padding: 0 10px;
+                font-size: 12px;
             }
 
             .page-wrapper {
@@ -1909,6 +1934,16 @@
 
         /* 响应式设计 - 手机 */
         @media(max-width:480px) {
+            .social-links {
+                gap: 8px;
+            }
+
+            .social-link.social-version {
+                min-width: 104px;
+                padding: 0 8px;
+                font-size: 11px;
+            }
+
             .page-wrapper {
                 padding: 12px;
                 justify-content: flex-start;
@@ -2212,6 +2247,17 @@
             color: #34d399;
             border-color: rgba(52, 211, 153, 0.5);
             box-shadow: 0 8px 24px rgba(52, 211, 153, 0.3), 0 4px 12px rgba(16, 185, 129, 0.2)
+        }
+
+        html.dark-mode .social-link.social-version {
+            color: #d1d5db;
+        }
+
+        html.dark-mode .social-link.social-version:hover,
+        html.dark-mode .social-link.social-version:active {
+            color: #d1d5db;
+            border-color: rgba(75, 75, 75, 0.6);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15);
         }
 
         html.dark-mode .btn-secondary {
@@ -6823,7 +6869,8 @@ vless://7b102311-43fd-4e8f-977e-8090623c101d@edt-pages.github.io:443?security=tl
                         </select>
                     </div>
 
-                    <div class="form-group" id="ssMethodGroup" style="display: none;" title="Shadowsocks 的加密方式，推荐使用 aes-128-gcm 以获得更好的性能和兼容性。">
+                    <div class="form-group" id="ssMethodGroup" style="display: none;"
+                        title="Shadowsocks 的加密方式，推荐使用 aes-128-gcm 以获得更好的性能和兼容性。">
                         <label for="ssMethod">加密方式</label>
                         <select id="ssMethod" onchange="markModified('config')">
                             <option value="aes-128-gcm">aes-128-gcm（CPU消耗少速度快）</option>
@@ -6831,7 +6878,8 @@ vless://7b102311-43fd-4e8f-977e-8090623c101d@edt-pages.github.io:443?security=tl
                         </select>
                     </div>
 
-                    <div class="form-group" id="ssTLSGroup" style="display: none;" title="关闭TLS后，节点数据将以 HTTP明文 形式传输 aes-128/256-gcm 加密数据。所以即使关闭TLS，数据仍然是加密的。">
+                    <div class="form-group" id="ssTLSGroup" style="display: none;"
+                        title="关闭TLS后，节点数据将以 HTTP明文 形式传输 aes-128/256-gcm 加密数据。所以即使关闭TLS，数据仍然是加密的。">
                         <label for="ssTLS">TLS</label>
                         <select id="ssTLS" onchange="handleSSTLSChange(event)">
                             <option value="true">启用</option>
@@ -7327,6 +7375,9 @@ vless://7b102311-43fd-4e8f-977e-8090623c101d@edt-pages.github.io:443?security=tl
                             d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12a12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472c-.18 1.898-.962 6.502-1.36 8.627c-.168.9-.499 1.201-.82 1.23c-.696.065-1.225-.46-1.9-.902c-1.056-.693-1.653-1.124-2.678-1.8c-1.185-.78-.417-1.21.258-1.91c.177-.184 3.247-2.977 3.307-3.23c.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345c-.48.33-.913.49-1.302.48c-.428-.008-1.252-.241-1.865-.44c-.752-.245-1.349-.374-1.297-.789c.027-.216.325-.437.893-.663c3.498-1.524 5.83-2.529 6.998-3.014c3.332-1.386 4.025-1.627 4.476-1.635z" />
                     </svg>
                 </a>
+                <div class="social-link social-version" id="versionBadge" title="当前版本" hidden style="display: none;">
+                    <span id="versionValue"></span>
+                </div>
                 <!-- 返回顶部按钮 -->
                 <button type="button" class="social-link" title="返回顶部" onclick="scrollToTop()">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -9099,6 +9150,60 @@ vless://7b102311-43fd-4e8f-977e-8090623c101d@edt-pages.github.io:443?security=tl
             }
         }
 
+        function updateVersionBadge(version) {
+            const versionBadge = document.getElementById('versionBadge');
+            const versionValue = document.getElementById('versionValue');
+            if (!versionBadge || !versionValue) return;
+
+            const text = String(version ?? '').trim();
+            if (text) {
+                versionValue.textContent = "v" + text;
+                versionBadge.hidden = false;
+                versionBadge.style.display = 'flex';
+            } else {
+                versionValue.textContent = '';
+                versionBadge.hidden = true;
+                versionBadge.style.display = 'none';
+            }
+        }
+
+        async function loadVersionByUUID(uuid) {
+            const uuidValue = String(uuid || '').trim();
+            if (!uuidValue) {
+                updateVersionBadge('');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/version?_t=${Date.now()}&uuid=${encodeURIComponent(uuidValue)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (_) {
+                    updateVersionBadge('');
+                    return;
+                }
+
+                if (data && typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, 'Version')) {
+                    updateVersionBadge(data.Version);
+                } else {
+                    updateVersionBadge('');
+                }
+            } catch (error) {
+                console.warn('[Version] 获取版本号失败:', error);
+                updateVersionBadge('');
+            }
+        }
+
         // 初始化增强型文本编辑器
         function initLineEditor(textareaId) {
             const ta = document.getElementById(textareaId);
@@ -9170,9 +9275,11 @@ vless://7b102311-43fd-4e8f-977e-8090623c101d@edt-pages.github.io:443?security=tl
                 currentConfig = await response.json();
                 originalConfig = JSON.parse(JSON.stringify(currentConfig));
                 renderUI();
+                loadVersionByUUID(currentConfig.UUID);
                 // 设置网页标题
                 document.title = `${currentConfig.优选订阅生成?.SUBNAME || 'edgetunnel'} 设置页面 - 管理后台`;
             } catch (error) {
+                updateVersionBadge('');
                 showToast('加载配置失败: ' + error.message, 'error');
             }
         }
@@ -17532,4 +17639,3 @@ vless://7b102311-43fd-4e8f-977e-8090623c101d@edt-pages.github.io:443?security=tl
 </body>
 
 </html>
-
